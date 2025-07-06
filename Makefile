@@ -2,12 +2,9 @@
 
 # make - Build Dependencies and the JASSUB.js
 BASE_DIR:=$(dir $(realpath $(firstword $(MAKEFILE_LIST))))
-DIST_DIR:=$(BASE_DIR)dist/libraries
 
 export CFLAGS = -O3 -flto -s USE_PTHREADS=0 -fno-rtti -fno-exceptions
 export CXXFLAGS = $(CFLAGS)
-export PKG_CONFIG_PATH = $(DIST_DIR)/lib/pkgconfig
-export EM_PKG_CONFIG_PATH = $(PKG_CONFIG_PATH)
 
 SIMD_ARGS = \
 	-msimd128 \
@@ -24,25 +21,33 @@ SIMD_ARGS = \
 	-mnontrapping-fptoint 
 
 ifeq (${MODERN},1)
-	WORKER_NAME = jassub-worker-modern
-	WORKER_ARGS = \
-		-s WASM=1 \
-		$(SIMD_ARGS)
-
+	WORKER_ARGS = -s WASM=1 $(SIMD_ARGS)
 	override CFLAGS += $(SIMD_ARGS)
 	override CXXFLAGS += $(SIMD_ARGS)
-
+	DIST_DIR:=$(BASE_DIR)dist/modern/libraries
+	MIN_CHROME_VERSION=68
 else
-	WORKER_NAME = jassub-worker
-	WORKER_ARGS = \
-		-s WASM=2 
-
+	WORKER_ARGS = -s WASM=2
+	DIST_DIR:=$(BASE_DIR)dist/legacy/libraries
+	MIN_CHROME_VERSION=38
 endif
 
-all: jassub
-jassub: dist
+export PKG_CONFIG_PATH = $(DIST_DIR)/lib/pkgconfig
+export EM_PKG_CONFIG_PATH = $(PKG_CONFIG_PATH)
 
-.PHONY: all jassub dist
+all: clean build-68 build-38
+
+build-68:
+	$(MAKE) clean-libs
+	rm -frv build/js/modern
+	$(MAKE) dist-modern
+
+build-38:
+	$(MAKE) clean-libs
+	rm -frv build/js/legacy
+	$(MAKE) dist-legacy
+
+.PHONY: all build-68 build-38
 
 include functions.mk
 
@@ -172,8 +177,32 @@ LIBASS_DEPS = \
 	$(DIST_DIR)/lib/libfontconfig.a \
 	$(DIST_DIR)/lib/libass.a
 
+BUILD_DIR = build/js
 
-dist: $(LIBASS_DEPS) dist/js/$(WORKER_NAME).js dist/js/jassub.js
+dist: dist-modern dist-legacy
+
+dist-modern: $(LIBASS_DEPS)
+	mkdir -p $(BUILD_DIR)/modern/esm/
+	$(MAKE) MODERN=1 EXPORT_ES6_FLAG=1 $(BUILD_DIR)/modern/esm/worker.js
+
+	mkdir -p $(BUILD_DIR)/modern/umd/
+	$(MAKE) MODERN=1 EXPORT_ES6_FLAG=0 $(BUILD_DIR)/modern/umd/worker.js
+
+dist-legacy: $(LIBASS_DEPS)
+	mkdir -p $(BUILD_DIR)/legacy/umd/
+	$(MAKE) EXPORT_ES6_FLAG=0 $(BUILD_DIR)/legacy/umd/worker.js
+
+.PHONY: dist dist-modern dist-legacy
+
+ifeq ($(DEBUG),1)
+	OPT_LEVEL = -O0
+	MINIFY_FLAG = --closure 0 --minify 0
+	DEBUG_SUFFIX=.debug
+else
+	OPT_LEVEL = -O3
+	MINIFY_FLAG = --closure 1 --minify 1
+	DEBUG_SUFFIX=
+endif
 
 # Dist Files https://github.com/emscripten-core/emscripten/blob/3.1.38/src/settings.js
 
@@ -188,7 +217,7 @@ PERFORMANCE_ARGS = \
 		--no-heap-copy \
 		-flto \
 		-fno-exceptions \
-		-O3
+		$(OPT_LEVEL)
 
 # args for reducing size
 SIZE_ARGS = \
@@ -207,48 +236,57 @@ COMPAT_ARGS = \
 		-s EXPORT_KEEPALIVE=1 \
 		-s EXPORTED_RUNTIME_METHODS="['getTempRet0', 'setTempRet0']" \
 		-s IMPORTED_MEMORY=1 \
-		-s MIN_CHROME_VERSION=27 \
-		-s MIN_SAFARI_VERSION=60005 \
+		-s MIN_CHROME_VERSION=$(MIN_CHROME_VERSION) \
 		-mbulk-memory \
 		--memory-init-file 0 
 
-dist/js/$(WORKER_NAME).js: src/JASSUB.cpp src/worker.js src/pre-worker.js
-	mkdir -p dist/js
+$(BUILD_DIR)/%/worker.js:
+	$(MAKE) DEBUG=0 build-worker OUT_JS=$@
+
+$(BUILD_DIR)/%/worker.debug.js:
+	$(MAKE) DEBUG=1 build-worker OUT_JS=$@
+
+build-worker: src/JASSUB.cpp src/worker.js src/pre-worker.js | $(LIBASS_DEPS)
+	mkdir -p $(dir $@)
 	emcc src/JASSUB.cpp $(LIBASS_DEPS) \
 		$(WORKER_ARGS) \
 		$(PERFORMANCE_ARGS) \
 		$(SIZE_ARGS) \
 		$(COMPAT_ARGS) \
+		$(MINIFY_FLAG) \
 		--pre-js src/pre-worker.js \
 		-s ENVIRONMENT=worker \
 		-s EXIT_RUNTIME=0 \
 		-s ALLOW_MEMORY_GROWTH=1 \
 		-s MODULARIZE=1 \
-		-s EXPORT_ES6=1 \
+		-s EXPORT_ES6=$(EXPORT_ES6_FLAG) \
 		-lembind \
-		-o $@
+		-o $(OUT_JS)
 
-dist/js/jassub.js: src/jassub.js
-	mkdir -p dist/js
-	cp src/jassub.js $@
+#dist/js/jassub.js: src/jassub.js
+#   mkdir -p dist/js
+#   cp src/jassub.js $@
 
 # dist/license/all:
-#	@#FIXME: allow -j in toplevel Makefile and reintegrate licence extraction into this file
-#	make -j "$$(nproc)" -f Makefile_licence all
+#   @#FIXME: allow -j in toplevel Makefile and reintegrate licence extraction into this file
+#   make -j "$$(nproc)" -f Makefile_licence all
 
 # dist/js/COPYRIGHT: dist/license/all
-#	cp "$<" "$@"
+#   cp "$<" "$@"
 
 # Clean Tasks
 
 clean: clean-dist clean-libs clean-jassub
 
 clean-dist:
-	rm -frv dist/libraries/*
-	rm -frv dist/js/*
+	rm -frv dist/legacy
+	rm -frv dist/modern
 	rm -frv dist/license/*
+	rm -frv build/js
+
 clean-libs:
-	rm -frv dist/libraries build/lib
+	rm -frv build/lib
+
 clean-jassub:
 	cd src && git clean -fdX
 

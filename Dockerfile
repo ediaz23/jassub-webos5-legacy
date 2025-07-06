@@ -23,6 +23,9 @@ RUN apt-get update && \
         nodejs \
     && rm -rf /var/lib/apt/lists/*
 
+RUN git config --global --add safe.directory /code
 WORKDIR /code
-CMD ["bash", "-c", "sudo rm -rf dist/libraries; sudo rm -rf build/lib; make; sudo rm -rf dist/libraries; sudo rm -rf build/lib; env MODERN=1 make; sudo npm i; sudo node vite.build.js"]
-
+RUN sudo usermod -aG sudo emscripten
+RUN echo 'emscripten:123456' | chpasswd
+USER emscripten
+CMD [ "bash" ]
