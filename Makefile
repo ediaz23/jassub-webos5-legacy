@@ -256,6 +256,7 @@ build-worker: src/JASSUB.cpp src/worker.js src/pre-worker.js | $(LIBASS_DEPS)
 		-s EXPORT_ES6=$(EXPORT_ES6_FLAG) \
 		-lembind \
 		-o $(OUT_JS)
+	mv $(OUT_JS:.js=.wasm) $(dir $(OUT_JS))/../
 
 #dist/js/jassub.js: src/jassub.js
 #   mkdir -p dist/js
