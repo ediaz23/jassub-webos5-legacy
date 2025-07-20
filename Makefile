@@ -2,7 +2,7 @@
 
 # make - Build Dependencies and the JASSUB.js
 BASE_DIR:=$(dir $(realpath $(firstword $(MAKEFILE_LIST))))
-DIST_DIR:=$(BASE_DIR)dist/libraries
+DIST_DIR:=$(BASE_DIR)build/libraries
 DIST_JS_DIR:=$(BASE_DIR)dist
 
 export CFLAGS = -O3 -flto -s USE_PTHREADS=0 -fno-rtti -fno-exceptions
@@ -47,6 +47,12 @@ build-38:
 .PHONY: all build-68 build-38
 
 include functions.mk
+
+ifeq ($(DEBUG),1)
+    OPT_LEVEL = -O0
+else
+    OPT_LEVEL = -O3
+endif
 
 # FriBidi
 build/lib/fribidi/configure: lib/fribidi $(wildcard $(BASE_DIR)build/patches/fribidi/*.patch)
@@ -193,14 +199,6 @@ dist-legacy: $(LIBASS_DEPS)
 
 .PHONY: dist dist-modern dist-legacy
 
-ifeq ($(DEBUG),1)
-	OPT_LEVEL = -O0
-	MINIFY_FLAG = --closure 0 --minify 0
-else
-	OPT_LEVEL = -O3
-	MINIFY_FLAG = --closure 1 --minify 1
-endif
-
 # Dist Files https://github.com/emscripten-core/emscripten/blob/3.1.38/src/settings.js
 
 # args for increasing performance
@@ -250,12 +248,11 @@ build-worker: src/JASSUB.cpp src/worker.js src/pre-worker.js | $(LIBASS_DEPS)
 		$(PERFORMANCE_ARGS) \
 		$(SIZE_ARGS) \
 		$(COMPAT_ARGS) \
-		$(MINIFY_FLAG) \
 		--pre-js src/pre-worker.js \
 		-s ENVIRONMENT=worker \
 		-s EXIT_RUNTIME=0 \
 		-s ALLOW_MEMORY_GROWTH=1 \
-		-s MODULARIZE=1 \
+		-s MODULARIZE=$(EXPORT_ES6_FLAG) \
 		-s EXPORT_ES6=$(EXPORT_ES6_FLAG) \
 		-lembind \
 		-o $(OUT_JS)
