@@ -7,17 +7,12 @@ const {
     configCommonMinProdUmd
 } = require('../common/webpack.common.prod.cjs');
 
-function setEntry(config) {
-    config.entry['jassub.worker'] = `./build/js/modern/${config.entry['jassub.worker']}.js`
-    return config
-}
+const configLegacyDebugUmd = merge(umdConfig, configCommonDebugProdUmd);
 
-const configLegacyDebugUmd = merge(umdConfig, setEntry(configCommonDebugProdUmd));
+const configLegacyMinUmd = merge(umdConfig, configCommonMinProdUmd);
 
-const configLegacyMinUmd = merge(umdConfig, setEntry(configCommonMinProdUmd));
+const configLegacyDebugEsm = merge(esmConfig, configCommonDebugProdEsm);
 
-const configLegacyDebugEsm = merge(esmConfig, setEntry(configCommonDebugProdEsm));
-
-const configLegacyMinEsm = merge(esmConfig, setEntry(configCommonMinProdEsm));
+const configLegacyMinEsm = merge(esmConfig, configCommonMinProdEsm);
 
 module.exports = [configLegacyDebugUmd, configLegacyMinUmd, configLegacyDebugEsm, configLegacyMinEsm];

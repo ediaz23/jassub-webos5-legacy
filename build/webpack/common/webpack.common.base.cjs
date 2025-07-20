@@ -28,7 +28,6 @@ const commonBaseConfig = {
 
 const prodEntries = {
     'jassub.webos': './src/jassub.js',
-    'jassub.worker': 'worker',
 }
 
 module.exports = { commonBaseConfig, prodEntries };

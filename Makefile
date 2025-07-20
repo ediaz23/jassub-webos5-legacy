@@ -2,6 +2,8 @@
 
 # make - Build Dependencies and the JASSUB.js
 BASE_DIR:=$(dir $(realpath $(firstword $(MAKEFILE_LIST))))
+DIST_DIR:=$(BASE_DIR)dist/libraries
+DIST_JS_DIR:=$(BASE_DIR)dist
 
 export CFLAGS = -O3 -flto -s USE_PTHREADS=0 -fno-rtti -fno-exceptions
 export CXXFLAGS = $(CFLAGS)
@@ -23,11 +25,9 @@ ifeq (${MODERN},1)
 	WORKER_ARGS = -s WASM=1 $(SIMD_ARGS)
 	override CFLAGS += $(SIMD_ARGS)
 	override CXXFLAGS += $(SIMD_ARGS)
-	DIST_DIR:=$(BASE_DIR)build/libraries
 	MIN_CHROME_VERSION=68
 else
 	WORKER_ARGS = -s WASM=2
-	DIST_DIR:=$(BASE_DIR)build/libraries
 	MIN_CHROME_VERSION=38
 endif
 
@@ -38,12 +38,10 @@ all: clean build-68 build-38
 
 build-68:
 	$(MAKE) clean-libs
-	rm -frv build/js/modern
 	$(MAKE) dist-modern
 
 build-38:
 	$(MAKE) clean-libs
-	rm -frv build/js/legacy
 	$(MAKE) dist-legacy
 
 .PHONY: all build-68 build-38
@@ -180,26 +178,27 @@ BUILD_DIR = build/js
 dist: dist-modern dist-legacy
 
 dist-modern: $(LIBASS_DEPS)
-	mkdir -p $(BUILD_DIR)/modern/esm/
-	$(MAKE) MODERN=1 EXPORT_ES6_FLAG=1 $(BUILD_DIR)/modern/esm/worker.js
+	mkdir -p $(DIST_JS_DIR)/modern/esm/
+	$(MAKE) MODERN=1 EXPORT_ES6_FLAG=1 $(DIST_JS_DIR)/modern/esm/worker.min.js
+	$(MAKE) MODERN=1 EXPORT_ES6_FLAG=1 DEBUG=1 $(DIST_JS_DIR)/modern/esm/worker.debug.js
 
-	mkdir -p $(BUILD_DIR)/modern/umd/
-	$(MAKE) MODERN=1 EXPORT_ES6_FLAG=0 $(BUILD_DIR)/modern/umd/worker.js
+	mkdir -p $(DIST_JS_DIR)/modern/umd/
+	$(MAKE) MODERN=1 EXPORT_ES6_FLAG=0 $(DIST_JS_DIR)/modern/umd/worker.min.js
+	$(MAKE) MODERN=1 EXPORT_ES6_FLAG=0 DEBUG=1 $(DIST_JS_DIR)/modern/umd/worker.debug.js
 
 dist-legacy: $(LIBASS_DEPS)
-	mkdir -p $(BUILD_DIR)/legacy/umd/
-	$(MAKE) EXPORT_ES6_FLAG=0 $(BUILD_DIR)/legacy/umd/worker.js
+	mkdir -p $(DIST_JS_DIR)/legacy/umd/
+	$(MAKE) EXPORT_ES6_FLAG=0 $(DIST_JS_DIR)/legacy/umd/worker.min.js
+	$(MAKE) EXPORT_ES6_FLAG=0 DEBUG=1 $(DIST_JS_DIR)/legacy/umd/worker.debug.js
 
 .PHONY: dist dist-modern dist-legacy
 
 ifeq ($(DEBUG),1)
 	OPT_LEVEL = -O0
 	MINIFY_FLAG = --closure 0 --minify 0
-	DEBUG_SUFFIX=.debug
 else
 	OPT_LEVEL = -O3
 	MINIFY_FLAG = --closure 1 --minify 1
-	DEBUG_SUFFIX=
 endif
 
 # Dist Files https://github.com/emscripten-core/emscripten/blob/3.1.38/src/settings.js
@@ -238,10 +237,10 @@ COMPAT_ARGS = \
 		-mbulk-memory \
 		--memory-init-file 0 
 
-$(BUILD_DIR)/%/worker.js:
+$(DIST_JS_DIR)/%/worker.min.js:
 	$(MAKE) DEBUG=0 build-worker OUT_JS=$@
 
-$(BUILD_DIR)/%/worker.debug.js:
+$(DIST_JS_DIR)/%/worker.debug.js:
 	$(MAKE) DEBUG=1 build-worker OUT_JS=$@
 
 build-worker: src/JASSUB.cpp src/worker.js src/pre-worker.js | $(LIBASS_DEPS)

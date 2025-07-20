@@ -10,15 +10,9 @@ const plugins = [
     })
 ]
 
-function getEntries(type) {
-    const out = {...prodEntries}
-    out['jassub.worker'] = `${type}/${out['jassub.worker']}`
-    return out
-}
-
 const configCommonDebugProdUmd = {
     mode: 'development',
-    entry: getEntries('umd'),
+    entry: prodEntries,
     output: {
         filename: '[name].debug.js'
     }
@@ -26,7 +20,7 @@ const configCommonDebugProdUmd = {
 
 const configCommonMinProdUmd = {
     mode: 'production',
-    entry: getEntries('umd'),
+    entry: prodEntries,
     output: {
         filename: '[name].min.js'
     },
@@ -36,7 +30,7 @@ const configCommonMinProdUmd = {
 
 const configCommonDebugProdEsm = {
     mode: 'development',
-    entry: getEntries('esm'),
+    entry: prodEntries,
     output: {
         filename: '[name].debug.js'
     }
@@ -44,7 +38,7 @@ const configCommonDebugProdEsm = {
 
 const configCommonMinProdEsm = {
     mode: 'production',
-    entry: getEntries('esm'),
+    entry: prodEntries,
     output: {
         filename: '[name].min.js'
     },
