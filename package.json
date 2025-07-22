@@ -2,15 +2,65 @@
     "name": "jassub-webos5",
     "version": "1.8.601",
     "description": "jassub fork targeting webOS 5 and Chromium 68 compatibility, with adjustments for webos 3 and 4",
-    "main": "src/jassub.js",
+    "exports": {
+        ".": {
+            "types": "./index.d.ts",
+            "import": "./dist/modern/esm/jassub.webos.min.js",
+            "browser": "./dist/modern/umd/jassub.webos.min.js",
+            "require": "./dist/modern/umd/jassub.webos.min.js",
+            "default": "./dist/modern/esm/jassub.webos.min.js"
+        },
+        "./debug": {
+            "import": "./dist/modern/esm/jassub.webos.debug.js",
+            "browser": "./dist/modern/umd/jassub.webos.debug.js",
+            "require": "./dist/modern/umd/jassub.webos.debug.js"
+        },
+        "./legacy": {
+            "import": "./dist/legacy/umd/jassub.webos.min.js",
+            "browser": "./dist/legacy/umd/jassub.webos.min.js",
+            "require": "./dist/legacy/umd/jassub.webos.min.js"
+        },
+        "./legacy-debug": {
+            "import": "./dist/legacy/umd/jassub.webos.debug.js",
+            "browser": "./dist/legacy/umd/jassub.webos.debug.js",
+            "require": "./dist/legacy/umd/jassub.webos.debug.js"
+        },
+        "./worker": {
+            "import": "./dist/modern/esm/worker.min.js",
+            "browser": "./dist/modern/umd/worker.min.js",
+            "require": "./dist/modern/umd/worker.min.js"
+        },
+        "./worker-debug": {
+            "import": "./dist/modern/esm/worker.debug.js",
+            "browser": "./dist/modern/umd/worker.debug.js",
+            "require": "./dist/modern/umd/worker.debug.js"
+        },
+        "./worker-wasm": {
+            "default": "./dist/modern/worker.min.wasm"
+        },
+        "./worker-debug-wasm": {
+            "default": "./dist/modern/worker.debug.wasm"
+        },
+        "./legacy-worker": {
+            "default": "./dist/legacy/umd/worker.min.js"
+        },
+        "./legacy-worker-debug": {
+            "default": "./dist/legacy/umd/worker.debug.js"
+        },
+        "./legacy-worker-wasm": {
+            "default": "./dist/legacy/worker.min.wasm"
+        },
+        "./legacy-worker-debug-wasm": {
+            "default": "./dist/legacy/worker.debug.wasm"
+        },
+        "./default-font": {
+            "default": "./dist/default.woff2"
+        },
+        "./license": {
+            "default": "./dist/COPYRIGHT"
+        }
+    },
     "type": "module",
-    "files": [
-        "dist/COPYRIGHT",
-        "dist/default.woff2",
-        "dist/jassub*",
-        "src/jassub.js",
-        "index.d.ts"
-    ],
     "scripts": {
         "build": "./run-docker-build.sh && npm run webpack",
         "docker:build": "docker build -t thaunknown/jassub-build .",
@@ -24,6 +74,12 @@
         "type": "git",
         "url": "git+https://github.com/ediaz23/dashjs-webos5-legacy.git"
     },
+    "files": [
+        "dist/COPYRIGHT",
+        "dist/default.woff2",
+        "dist",
+        "index.d.ts"
+    ],
     "keywords": [
         "libass",
         "subtitle",

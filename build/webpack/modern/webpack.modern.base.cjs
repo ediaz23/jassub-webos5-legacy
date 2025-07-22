@@ -51,7 +51,6 @@ const esmConfig = merge(modernConfig, {
         library: {
             type: 'module',
         },
-        libraryExport: 'default',
     },
 });
 
