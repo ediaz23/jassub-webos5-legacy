@@ -29,14 +29,17 @@ legacyConfig.module.rules[0].use.push({
     },
 },)
 
-const umdConfig = merge(legacyConfig, {
+const esmConfig = merge(legacyConfig, {
+    experiments: {
+        outputModule: true
+    },
     output: {
-        path: path.resolve(__dirname, '../../../dist/legacy/umd'),
-        publicPath: '/dist/legacy/umd/',
-        library: 'jassub',
-        libraryTarget: 'umd',
-        libraryExport: 'default'
+        path: path.resolve(__dirname, '../../../dist/legacy'),
+        publicPath: '/dist/legacy/',
+        library: {
+            type: 'module',
+        },
     },
 });
 
-module.exports = { umdConfig };
+module.exports = { esmConfig };

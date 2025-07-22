@@ -31,27 +31,17 @@ modernConfig.module.rules[0].use.push({
     },
 },)
 
-const umdConfig = merge(modernConfig, {
-    output: {
-        path: path.resolve(__dirname, '../../../dist/modern/umd'),
-        publicPath: '/dist/modern/umd/',
-        library: 'jassub',
-        libraryTarget: 'umd',
-        libraryExport: 'default'
-    },
-});
-
 const esmConfig = merge(modernConfig, {
     experiments: {
         outputModule: true
     },
     output: {
-        path: path.resolve(__dirname, '../../../dist/modern/esm'),
-        publicPath: '/dist/modern/esm/',
+        path: path.resolve(__dirname, '../../../dist/modern'),
+        publicPath: '/dist/modern/',
         library: {
             type: 'module',
         },
     },
 });
 
-module.exports = { umdConfig, esmConfig };
+module.exports = { esmConfig };

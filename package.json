@@ -5,35 +5,27 @@
     "exports": {
         ".": {
             "types": "./index.d.ts",
-            "import": "./dist/modern/esm/jassub.webos.min.js",
-            "browser": "./dist/modern/umd/jassub.webos.min.js",
-            "require": "./dist/modern/umd/jassub.webos.min.js",
-            "default": "./dist/modern/esm/jassub.webos.min.js"
+            "import": "./dist/modern/jassub.webos.min.js",
+            "browser": "./dist/modern/jassub.webos.min.js",
+            "require": "./dist/modern/jassub.webos.min.js",
+            "default": "./dist/modern/jassub.webos.min.js"
         },
         "./debug": {
-            "import": "./dist/modern/esm/jassub.webos.debug.js",
-            "browser": "./dist/modern/umd/jassub.webos.debug.js",
-            "require": "./dist/modern/umd/jassub.webos.debug.js"
-        },
-        "./legacy": {
-            "import": "./dist/legacy/umd/jassub.webos.min.js",
-            "browser": "./dist/legacy/umd/jassub.webos.min.js",
-            "require": "./dist/legacy/umd/jassub.webos.min.js"
-        },
-        "./legacy-debug": {
-            "import": "./dist/legacy/umd/jassub.webos.debug.js",
-            "browser": "./dist/legacy/umd/jassub.webos.debug.js",
-            "require": "./dist/legacy/umd/jassub.webos.debug.js"
+            "types": "./index.d.ts",
+            "import": "./dist/modern/jassub.webos.debug.js",
+            "browser": "./dist/modern/jassub.webos.debug.js",
+            "require": "./dist/modern/jassub.webos.debug.js",
+            "default": "./dist/modern/jassub.webos.debug.js"
         },
         "./worker": {
-            "import": "./dist/modern/esm/worker.min.js",
-            "browser": "./dist/modern/umd/worker.min.js",
-            "require": "./dist/modern/umd/worker.min.js"
+            "import": "./dist/modern/worker.min.js",
+            "browser": "./dist/modern/worker.min.js",
+            "require": "./dist/modern/worker.min.js"
         },
         "./worker-debug": {
-            "import": "./dist/modern/esm/worker.debug.js",
-            "browser": "./dist/modern/umd/worker.debug.js",
-            "require": "./dist/modern/umd/worker.debug.js"
+            "import": "./dist/modern/worker.debug.js",
+            "browser": "./dist/modern/worker.debug.js",
+            "require": "./dist/modern/worker.debug.js"
         },
         "./worker-wasm": {
             "default": "./dist/modern/worker.min.wasm"
@@ -41,11 +33,30 @@
         "./worker-debug-wasm": {
             "default": "./dist/modern/worker.debug.wasm"
         },
+
+        "./legacy": {
+            "types": "./index.d.ts",
+            "import": "./dist/legacy/jassub.webos.min.js",
+            "browser": "./dist/legacy/jassub.webos.min.js",
+            "require": "./dist/legacy/jassub.webos.min.js",
+            "default": "./dist/legacy/jassub.webos.min.js"
+        },
+        "./legacy-debug": {
+            "types": "./index.d.ts",
+            "import": "./dist/legacy/jassub.webos.debug.js",
+            "browser": "./dist/legacy/jassub.webos.debug.js",
+            "require": "./dist/legacy/jassub.webos.debug.js",
+            "default": "./dist/legacy/jassub.webos.debug.js"
+        },
         "./legacy-worker": {
-            "default": "./dist/legacy/umd/worker.min.js"
+            "import": "./dist/legacy/worker.min.js",
+            "browser": "./dist/legacy/worker.min.js",
+            "require": "./dist/legacy/worker.min.js"
         },
         "./legacy-worker-debug": {
-            "default": "./dist/legacy/umd/worker.debug.js"
+            "import": "./dist/legacy/worker.debug.js",
+            "browser": "./dist/legacy/worker.debug.js",
+            "require": "./dist/legacy/worker.debug.js"
         },
         "./legacy-worker-wasm": {
             "default": "./dist/legacy/worker.min.wasm"

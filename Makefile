@@ -49,9 +49,9 @@ build-38:
 include functions.mk
 
 ifeq ($(DEBUG),1)
-    OPT_LEVEL = -O0
+	OPT_LEVEL = -O0
 else
-    OPT_LEVEL = -O3
+	OPT_LEVEL = -O3
 endif
 
 # FriBidi
@@ -184,18 +184,16 @@ BUILD_DIR = build/js
 dist: dist-modern dist-legacy
 
 dist-modern: $(LIBASS_DEPS)
-	mkdir -p $(DIST_JS_DIR)/modern/esm/
-	$(MAKE) MODERN=1 EXPORT_ES6_FLAG=1 $(DIST_JS_DIR)/modern/esm/worker.min.js
-	$(MAKE) MODERN=1 EXPORT_ES6_FLAG=1 DEBUG=1 $(DIST_JS_DIR)/modern/esm/worker.debug.js
-
-	mkdir -p $(DIST_JS_DIR)/modern/umd/
-	$(MAKE) MODERN=1 EXPORT_ES6_FLAG=0 $(DIST_JS_DIR)/modern/umd/worker.min.js
-	$(MAKE) MODERN=1 EXPORT_ES6_FLAG=0 DEBUG=1 $(DIST_JS_DIR)/modern/umd/worker.debug.js
+	rm -rf $(DIST_JS_DIR)/modern/
+	mkdir -p $(DIST_JS_DIR)/modern/
+	$(MAKE) MODERN=1 DEBUG=0 $(DIST_JS_DIR)/modern/worker.min.js
+	$(MAKE) MODERN=1 DEBUG=1 $(DIST_JS_DIR)/modern/worker.debug.js
 
 dist-legacy: $(LIBASS_DEPS)
-	mkdir -p $(DIST_JS_DIR)/legacy/umd/
-	$(MAKE) EXPORT_ES6_FLAG=0 $(DIST_JS_DIR)/legacy/umd/worker.min.js
-	$(MAKE) EXPORT_ES6_FLAG=0 DEBUG=1 $(DIST_JS_DIR)/legacy/umd/worker.debug.js
+	rm -rf $(DIST_JS_DIR)/legacy/
+	mkdir -p $(DIST_JS_DIR)/legacy/
+	$(MAKE) MODERN=0 DEBUG=0 $(DIST_JS_DIR)/legacy/worker.min.js
+	$(MAKE) MODERN=0 DEBUG=1 $(DIST_JS_DIR)/legacy/worker.debug.js
 
 .PHONY: dist dist-modern dist-legacy
 
@@ -252,11 +250,10 @@ build-worker: src/JASSUB.cpp src/worker.js src/pre-worker.js | $(LIBASS_DEPS)
 		-s ENVIRONMENT=worker \
 		-s EXIT_RUNTIME=0 \
 		-s ALLOW_MEMORY_GROWTH=1 \
-		-s MODULARIZE=$(EXPORT_ES6_FLAG) \
-		-s EXPORT_ES6=$(EXPORT_ES6_FLAG) \
+		-s MODULARIZE=0 \
+		-s EXPORT_ES6=0 \
 		-lembind \
 		-o $(OUT_JS)
-	mv $(OUT_JS:.js=.wasm) $(dir $(OUT_JS))/../
 
 #dist/js/jassub.js: src/jassub.js
 #   mkdir -p dist/js
