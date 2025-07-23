@@ -30,7 +30,7 @@
         "./worker-wasm": {
             "default": "./dist/modern/worker.min.wasm"
         },
-        "./worker-debug-wasm": {
+        "./worker-wasm-debug": {
             "default": "./dist/modern/worker.debug.wasm"
         },
 
@@ -61,7 +61,7 @@
         "./legacy-worker-wasm": {
             "default": "./dist/legacy/worker.min.wasm"
         },
-        "./legacy-worker-debug-wasm": {
+        "./legacy-worker-wasm-debug": {
             "default": "./dist/legacy/worker.debug.wasm"
         },
         "./default-font": {
@@ -79,7 +79,8 @@
         "lint": "eslint \"src/**/*.js\"",
         "webpack": "npm run webpack-modern && npm run webpack-legacy",
         "webpack-legacy": "webpack --config build/webpack/legacy/webpack.legacy.prod.cjs",
-        "webpack-modern": "webpack --config build/webpack/modern/webpack.modern.prod.cjs"
+        "webpack-modern": "webpack --config build/webpack/modern/webpack.modern.prod.cjs",
+        "build-modern": "./run-docker-build.sh -f make dist-modern && npm run webpack-modern"
     },
     "repository": {
         "type": "git",
