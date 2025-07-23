@@ -34,3 +34,5 @@ updateMemoryViews = (_super => {
         self.HEAPU8 = new Uint8Array(wasmMemory.buffer)
     }
 })(updateMemoryViews)
+
+Module = Module || {};
