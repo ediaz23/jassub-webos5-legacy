@@ -7,26 +7,6 @@ function assert(c, m) {
     }
 }
 
-const read_ = (url, ab) => {
-    const xhr = new XMLHttpRequest()
-    xhr.open('GET', url, false)
-    xhr.responseType = ab ? 'arraybuffer' : 'text'
-    xhr.send(null)
-    return xhr.response
-}
-const readAsync = (url, load, err) => {
-    const xhr = new XMLHttpRequest()
-    xhr.open('GET', url, true)
-    xhr.responseType = 'arraybuffer'
-    xhr.onload = () => {
-        if ((xhr.status === 200 || xhr.status === 0) && xhr.response) {
-            return load(xhr.response)
-        }
-    }
-    xhr.onerror = err
-    xhr.send(null)
-}
-
 let asm = null
 
 out = text => {
@@ -54,9 +34,3 @@ updateMemoryViews = (_super => {
         self.HEAPU8 = new Uint8Array(wasmMemory.buffer)
     }
 })(updateMemoryViews)
-
-Module = Module || {};
-const _preWorkerParams = new URL(self.location).searchParams;
-const preWorkerWamsUrl = _preWorkerParams.get('wasm')
-Module['wasm'] = new Uint8Array(read_(preWorkerWamsUrl, true))
-

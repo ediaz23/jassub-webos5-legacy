@@ -3,7 +3,7 @@
 # make - Build Dependencies and the JASSUB.js
 BASE_DIR:=$(dir $(realpath $(firstword $(MAKEFILE_LIST))))
 DIST_DIR:=$(BASE_DIR)build/libraries
-DIST_JS_DIR:=$(BASE_DIR)dist
+DIST_JS_DIR:=$(BASE_DIR)build/js
 
 export CFLAGS = -O3 -flto -s USE_PTHREADS=0 -fno-rtti -fno-exceptions
 export CXXFLAGS = $(CFLAGS)
@@ -36,12 +36,10 @@ export EM_PKG_CONFIG_PATH = $(PKG_CONFIG_PATH)
 
 all: clean build-68 build-38
 
-build-68:
-	$(MAKE) clean-libs
+build-68: clean-libs
 	$(MAKE) dist-modern
 
-build-38:
-	$(MAKE) clean-libs
+build-38: clean-libs
 	$(MAKE) dist-legacy
 
 .PHONY: all build-68 build-38
@@ -179,18 +177,15 @@ LIBASS_DEPS = \
 	$(DIST_DIR)/lib/libharfbuzz.a \
 	$(DIST_DIR)/lib/libass.a
 
-BUILD_DIR = build/js
 
 dist: dist-modern dist-legacy
 
-dist-modern: $(LIBASS_DEPS)
-	rm -rf $(DIST_JS_DIR)/modern/
+dist-modern: clean-js-modern $(LIBASS_DEPS)
 	mkdir -p $(DIST_JS_DIR)/modern/
 	$(MAKE) MODERN=1 DEBUG=0 $(DIST_JS_DIR)/modern/worker.min.js
 	$(MAKE) MODERN=1 DEBUG=1 $(DIST_JS_DIR)/modern/worker.debug.js
 
-dist-legacy: $(LIBASS_DEPS)
-	rm -rf $(DIST_JS_DIR)/legacy/
+dist-legacy: clean-js-legacy $(LIBASS_DEPS)
 	mkdir -p $(DIST_JS_DIR)/legacy/
 	$(MAKE) MODERN=0 DEBUG=0 $(DIST_JS_DIR)/legacy/worker.min.js
 	$(MAKE) MODERN=0 DEBUG=1 $(DIST_JS_DIR)/legacy/worker.debug.js
@@ -206,7 +201,7 @@ PERFORMANCE_ARGS = \
 		-s INVOKE_RUN=0 \
 		-s DISABLE_EXCEPTION_CATCHING=1 \
 		-s TEXTDECODER=1 \
-		-s MINIMAL_RUNTIME_STREAMING_WASM_INSTANTIATION=0 \
+		-s MINIMAL_RUNTIME_STREAMING_WASM_INSTANTIATION=1 \
 		--no-heap-copy \
 		-flto \
 		-fno-exceptions \
@@ -250,8 +245,8 @@ build-worker: src/JASSUB.cpp src/worker.js src/pre-worker.js | $(LIBASS_DEPS)
 		-s ENVIRONMENT=worker \
 		-s EXIT_RUNTIME=0 \
 		-s ALLOW_MEMORY_GROWTH=1 \
-		-s MODULARIZE=0 \
-		-s EXPORT_ES6=0 \
+		-s MODULARIZE=1 \
+		-s EXPORT_ES6=1 \
 		-lembind \
 		-o $(OUT_JS)
 
@@ -268,9 +263,9 @@ build-worker: src/JASSUB.cpp src/worker.js src/pre-worker.js | $(LIBASS_DEPS)
 
 # Clean Tasks
 
-clean: clean-dist clean-libs clean-jassub
+clean: clean-dist clean-jassub
 
-clean-dist: clean-libs
+clean-dist: clean-libs clean-js
 	rm -frv dist/legacy
 	rm -frv dist/modern
 	rm -frv dist/license/*
@@ -278,6 +273,16 @@ clean-dist: clean-libs
 clean-libs:
 	rm -frv build/libraries
 	rm -frv build/lib
+
+clean-js:
+	$(MAKE) clean-js-modern
+	$(MAKE) clean-js-legacy
+
+clean-js-modern:
+	rm -frv build/js/modern
+
+clean-js-legacy:
+	rm -frv build/js/legacy
 
 clean-jassub:
 	cd src && git clean -fdX
@@ -294,4 +299,4 @@ $(foreach subm, $(SUBMODULES), $(eval $(call TR_GIT_SM_RESET,$(subm))))
 server: # Node http server npm i -g http-server
 	http-server
 
-.PHONY: clean clean-dist clean-libs clean-jassub git-checkout git-smreset server
+.PHONY: clean clean-dist clean-libs clean-js clean-js-modern clean-js-legacy clean-jassub git-checkout git-smreset server

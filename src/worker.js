@@ -1,79 +1,6 @@
 // @ts-ignore
 import WASM from 'wasm'
 
-// polyfills for old or weird engines
-
-if (!String.prototype.startsWith) {
-    String.prototype.startsWith = function(s, p = 0) {
-        return this.substring(p, s.length) === s
-    }
-}
-
-if (!String.prototype.includes) {
-    String.prototype.includes = function(s, p) {
-        return this.indexOf(s, p) !== -1
-    }
-}
-
-if (!Uint8Array.prototype.slice) {
-    Uint8Array.prototype.slice = function(b, e) {
-        return new Uint8Array(this.subarray(b, e))
-    }
-}
-
-function toAbsoluteIndex(index, length) {
-    const integer = index >> 0
-    return integer < 0 ? Math.max(integer + length, 0) : Math.min(integer, length)
-}
-
-if (!Uint8Array.prototype.fill) {
-    Int8Array.prototype.fill = Int16Array.prototype.fill = Int32Array.prototype.fill = Uint8Array.prototype.fill = Uint16Array.prototype.fill = Uint32Array.prototype.fill = Float32Array.prototype.fill = Float64Array.prototype.fill = Array.prototype.fill = function(value) {
-        if (this == null) {
-            throw new TypeError('this is null or not defined')
-        }
-
-        const O = Object(this)
-
-        const length = O.length >>> 0
-
-        const argumentsLength = arguments.length
-        let index = toAbsoluteIndex(argumentsLength > 1 ? arguments[1] : undefined, length)
-        const end = argumentsLength > 2 ? arguments[2] : undefined
-        const endPos = end === undefined ? length : toAbsoluteIndex(end, length)
-        while (endPos > index) {
-            O[index++] = value
-        }
-        return O
-    }
-}
-
-if (!Uint8Array.prototype.copyWithin) {
-    Int8Array.prototype.copyWithin = Int16Array.prototype.copyWithin = Int32Array.prototype.copyWithin = Uint8Array.prototype.copyWithin = Uint16Array.prototype.copyWithin = Uint32Array.prototype.copyWithin = Float32Array.prototype.copyWithin = Float64Array.prototype.copyWithin = Array.prototype.copyWithin = function(target, start) {
-        const O = Object(this)
-        const len = O.length >>> 0
-
-        let to = toAbsoluteIndex(target, len)
-        let from = toAbsoluteIndex(start, len)
-        const end = arguments.length > 2 ? arguments[2] : undefined
-        let count = Math.min((end === undefined ? len : toAbsoluteIndex(end, len)) - from, len - to)
-        let inc = 1
-        if (from < to && to < from + count) {
-            inc = -1
-            from += count - 1
-            to += count - 1
-        }
-        while (count-- > 0) {
-            if (from in O) {
-                O[to] = O[from]
-            } else {
-                delete O[to]
-            }
-            to += inc
-            from += inc
-        } return O
-    }
-}
-
 if (!Date.now) {
     Date.now = () => new Date().getTime()
 }
@@ -581,63 +508,74 @@ self.init = data => {
     // hack, we want custom WASM URLs
     // @ts-ignore
     if (WebAssembly.instantiateStreaming) {
-        const _fetch = self.fetch
-        self.fetch = () => _fetch(data.wasmUrl)
+        self._fetch = self.fetch
+        self.fetch = () => {
+            const wasmBuffer = read_(data.wasmUrl, true);
+            return Promise.resolve(new Response(wasmBuffer, {
+                headers: {
+                    'Content-Type': 'application/wasm',
+                    'Content-Length': wasmBuffer.byteLength.toString()
+                }
+            }));
+        };
     }
-    WASM({ wasm: !WebAssembly.instantiateStreaming && read_(data.wasmUrl, true) }).then((/** @type {EmscriptenModule} */Module) => {
-        _malloc = Module._malloc
-        self.width = data.width
-        self.height = data.height
-        blendMode = data.blendMode
-        asyncRender = data.asyncRender
-        // Force fallback if engine does not support 'lossy' mode.
-        // We only use createImageBitmap in the worker and historic WebKit versions supported
-        // the API in the normal but not the worker scope, so we can't check this earlier.
-        if (asyncRender && typeof createImageBitmap === 'undefined') {
-            asyncRender = false
-            console.error('"createImageBitmap" needed for "asyncRender" unsupported!')
-        }
 
-        availableFonts = data.availableFonts
-        debug = data.debug
-        targetFps = data.targetFps || targetFps
-        useLocalFonts = data.useLocalFonts
-        dropAllBlur = data.dropAllBlur
+    WASM({ wasm: !WebAssembly.instantiateStreaming && read_(data.wasmUrl, true) }).then(
+        /** @param {EmscriptenModule} Module */
+        (Module) => {
+            _malloc = Module._malloc
+            self.width = data.width
+            self.height = data.height
+            blendMode = data.blendMode
+            asyncRender = data.asyncRender
+            // Force fallback if engine does not support 'lossy' mode.
+            // We only use createImageBitmap in the worker and historic WebKit versions supported
+            // the API in the normal but not the worker scope, so we can't check this earlier.
+            if (asyncRender && typeof createImageBitmap === 'undefined') {
+                asyncRender = false
+                console.error('"createImageBitmap" needed for "asyncRender" unsupported!')
+            }
 
-        const fallbackFont = data.fallbackFont.toLowerCase()
-        jassubObj = new Module.JASSUB(self.width, self.height, fallbackFont || null, debug)
+            availableFonts = data.availableFonts
+            debug = data.debug
+            targetFps = data.targetFps || targetFps
+            useLocalFonts = data.useLocalFonts
+            dropAllBlur = data.dropAllBlur
 
-        if (fallbackFont) {
-            findAvailableFonts(fallbackFont)
-        }
+            const fallbackFont = data.fallbackFont.toLowerCase()
+            jassubObj = new Module.JASSUB(self.width, self.height, fallbackFont || null, debug)
 
-        let subContent = data.subContent
-        if (!subContent) {
-            subContent = read_(data.subUrl)
-        }
+            if (fallbackFont) {
+                findAvailableFonts(fallbackFont)
+            }
 
-        processAvailableFonts(subContent)
-        if (dropAllBlur) {
-            subContent = dropBlur(subContent)
-        }
+            let subContent = data.subContent
+            if (!subContent) {
+                subContent = read_(data.subUrl)
+            }
 
-        for (const font of data.fonts || []) {
-            asyncWrite(font)
-        }
+            processAvailableFonts(subContent)
+            if (dropAllBlur) {
+                subContent = dropBlur(subContent)
+            }
 
-        jassubObj.createTrackMem(subContent)
+            for (const font of data.fonts || []) {
+                asyncWrite(font)
+            }
 
-        subtitleColorSpace = libassYCbCrMap[jassubObj.trackColorSpace]
+            jassubObj.createTrackMem(subContent)
 
-        jassubObj.setDropAnimations(data.dropAllAnimations || 0)
+            subtitleColorSpace = libassYCbCrMap[jassubObj.trackColorSpace]
 
-        if (data.libassMemoryLimit > 0 || data.libassGlyphLimit > 0) {
-            jassubObj.setMemoryLimits(data.libassGlyphLimit || 0, data.libassMemoryLimit || 0)
-        }
+            jassubObj.setDropAnimations(data.dropAllAnimations || 0)
 
-        postMessage({ target: 'ready' })
-        postMessage({ target: 'verifyColorSpace', subtitleColorSpace })
-    })
+            if (data.libassMemoryLimit > 0 || data.libassGlyphLimit > 0) {
+                jassubObj.setMemoryLimits(data.libassGlyphLimit || 0, data.libassMemoryLimit || 0)
+            }
+
+            postMessage({ target: 'ready' })
+            postMessage({ target: 'verifyColorSpace', subtitleColorSpace })
+        })
 }
 
 self.offscreenCanvas = ({ transferable }) => {
@@ -677,7 +615,7 @@ self.video = ({ currentTime, isPaused }) => {
     if (isPaused != null) {
         setIsPaused(isPaused)
     }
-//    rate = rate || rate  raro no se usa
+    //    rate = rate || rate  raro no se usa
 }
 
 self.destroy = () => {
@@ -693,8 +631,10 @@ self.getEvents = () => {
     for (let i = 0; i < jassubObj.getEventCount(); i++) {
         const { Start, Duration, ReadOrder, Layer, Style, MarginL, MarginR,
             MarginV, Name, Text, Effect } = jassubObj.getEvent(i)
-        events.push({ Start, Duration, ReadOrder, Layer, Style, MarginL, MarginR,
-            MarginV, Name, Text, Effect })
+        events.push({
+            Start, Duration, ReadOrder, Layer, Style, MarginL, MarginR,
+            MarginV, Name, Text, Effect
+        })
     }
     postMessage({
         target: 'getEvents',
@@ -722,9 +662,11 @@ self.getStyles = () => {
         const { Name, FontName, FontSize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic,
             Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL,
             MarginR, MarginV, Encoding, treat_fontname_as_pattern, Blur, Justify } = jassubObj.getStyle(i)
-        styles.push({ Name, FontName, FontSize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic,
+        styles.push({
+            Name, FontName, FontSize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic,
             Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL,
-            MarginR, MarginV, Encoding, treat_fontname_as_pattern, Blur, Justify })
+            MarginR, MarginV, Encoding, treat_fontname_as_pattern, Blur, Justify
+        })
     }
     postMessage({
         target: 'getStyles',

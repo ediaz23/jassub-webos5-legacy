@@ -1,12 +1,12 @@
 const { merge } = require('webpack-merge');
-const { esmConfig } = require('./webpack.modern.base.cjs');
+const { esmConfig, getWamsFallback } = require('./webpack.modern.base.cjs');
 const {
     configCommonDebugProdEsm,
     configCommonMinProdEsm,
 } = require('../common/webpack.common.prod.cjs');
 
-const configLegacyDebugEsm = merge(esmConfig, configCommonDebugProdEsm);
+const configModernDebugEsm = merge(esmConfig, configCommonDebugProdEsm, getWamsFallback('modern'));
 
-const configLegacyMinEsm = merge(esmConfig, configCommonMinProdEsm);
+const configModernMinEsm = merge(esmConfig, configCommonMinProdEsm, getWamsFallback('modern'));
 
-module.exports = [configLegacyDebugEsm, configLegacyMinEsm];
+module.exports = [configModernDebugEsm, configModernMinEsm];
