@@ -21,6 +21,7 @@ RUN apt-get update && \
         gperf \
         licensecheck \
         nodejs \
+        llvm \
     && rm -rf /var/lib/apt/lists/*
 
 RUN git config --global --add safe.directory /code

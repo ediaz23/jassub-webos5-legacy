@@ -5,8 +5,8 @@ const {
     configCommonMinProdEsm
 } = require('../common/webpack.common.prod.cjs');
 
-const configLegacyDebugEsm = merge(esmConfig, configCommonDebugProdEsm, getWamsFallback('legacy'));
+const configLegacyDebugEsm = merge(esmConfig, configCommonDebugProdEsm, getWamsFallback('legacy', configCommonDebugProdEsm));
 
-const configLegacyMinEsm = merge(esmConfig, configCommonMinProdEsm, getWamsFallback('legacy'));
+const configLegacyMinEsm = merge(esmConfig, configCommonMinProdEsm, getWamsFallback('legacy', configCommonMinProdEsm));
 
 module.exports = [configLegacyDebugEsm, configLegacyMinEsm];

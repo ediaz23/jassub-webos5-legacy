@@ -4,14 +4,18 @@
     "description": "jassub fork targeting webOS 5 and Chromium 68 compatibility, with adjustments for webos 3 and 4",
     "type": "module",
     "scripts": {
-        "build": "./run-docker-build.sh && npm run webpack",
+        "clean": "./run-docker-build.sh -f make clean",
         "docker:build": "docker build -t thaunknown/jassub-build .",
         "docker:run": "docker run -it --rm -v ${PWD}:/code --name thaunknown_jassub-build thaunknown/jassub-build:latest",
         "lint": "eslint \"src/**/*.js\"",
+        "build": "./run-docker-build.sh && npm run webpack",
         "webpack": "npm run webpack-modern && npm run webpack-legacy",
-        "webpack-legacy": "webpack --config build/webpack/legacy/webpack.legacy.prod.cjs",
+        "build-modern": "./run-docker-build.sh -f make build-68 && npm run webpack-modern",
+        "dist-modern": "./run-docker-build.sh -f make dist-modern && npm run webpack-modern",
         "webpack-modern": "webpack --config build/webpack/modern/webpack.modern.prod.cjs",
-        "build-modern": "./run-docker-build.sh -f make dist-modern && npm run webpack-modern"
+        "build-legacy": "./run-docker-build.sh -f make build-38 && npm run webpack-legacy",
+        "dist-legacy": "./run-docker-build.sh -f make dist-legacy && npm run webpack-legacy",
+        "webpack-legacy": "webpack --config build/webpack/legacy/webpack.legacy.prod.cjs"
     },
     "repository": {
         "type": "git",
@@ -20,6 +24,7 @@
     "types": "./dist/modern/jassub.min.d.ts",
     "exports": {
         ".": "./dist/modern/jassub.min.js",
+        "./legacy": "./dist/legacy/jassub.min.js",
         "./legacy/*": "./dist/legacy/*",
         "./modern/*": "./dist/modern/*",
         "./default-font": "./dist/default.woff2"

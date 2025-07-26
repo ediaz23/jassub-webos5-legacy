@@ -1,45 +1,39 @@
 # JASSUB.js - Makefile
 
 # make - Build Dependencies and the JASSUB.js
+# TODO -s LEGACY_VM_SUPPORT=1
 BASE_DIR:=$(dir $(realpath $(firstword $(MAKEFILE_LIST))))
 DIST_DIR:=$(BASE_DIR)build/libraries
 DIST_JS_DIR:=$(BASE_DIR)build/js
 
-export CFLAGS = -O3 -flto -s USE_PTHREADS=0 -fno-rtti -fno-exceptions
-export CXXFLAGS = $(CFLAGS)
-
-SIMD_ARGS = \
-	-msimd128 \
-	-msse \
-	-msse2 \
-	-msse3 \
-	-mssse3 \
-	-msse4 \
-	-msse4.1 \
-	-msse4.2 \
-	-mavx \
-	-matomics \
-	-mnontrapping-fptoint 
+CFLAGS := -O3 -flto -fno-rtti -fno-exceptions -s USE_PTHREADS=0 -s WASM=1
+CXXFLAGS := $(CFLAGS)
 
 ifeq (${MODERN},1)
-	WORKER_ARGS = -s WASM=1 $(SIMD_ARGS)
-	override CFLAGS += $(SIMD_ARGS)
-	override CXXFLAGS += $(SIMD_ARGS)
-	MIN_CHROME_VERSION=68
+	MIN_CHROME_VERSION = 68
+	WORKER_ARGS =
+	CFLAGS += -s MIN_CHROME_VERSION=$(MIN_CHROME_VERSION)
 else
-	WORKER_ARGS = -s WASM=2
-	MIN_CHROME_VERSION=38
+	MIN_CHROME_VERSION = 38
+	WORKER_ARGS = -s LEGACY_VM_SUPPORT=1
+	CFLAGS += -s MIN_CHROME_VERSION=$(MIN_CHROME_VERSION)
 endif
+
+CXXFLAGS := $(CFLAGS)
+export CFLAGS
+export CXXFLAGS
 
 export PKG_CONFIG_PATH = $(DIST_DIR)/lib/pkgconfig
 export EM_PKG_CONFIG_PATH = $(PKG_CONFIG_PATH)
 
 all: clean build-68 build-38
 
-build-68: clean-libs
+build-68:
+	$(MAKE) clean-libs
 	$(MAKE) dist-modern
 
-build-38: clean-libs
+build-38:
+	$(MAKE) clean-libs
 	$(MAKE) dist-legacy
 
 .PHONY: all build-68 build-38
@@ -180,12 +174,12 @@ LIBASS_DEPS = \
 
 dist: dist-modern dist-legacy
 
-dist-modern: clean-js-modern $(LIBASS_DEPS)
+dist-modern: clean-js-modern
 	mkdir -p $(DIST_JS_DIR)/modern/
 	$(MAKE) MODERN=1 DEBUG=0 $(DIST_JS_DIR)/modern/worker.min.js
 	$(MAKE) MODERN=1 DEBUG=1 $(DIST_JS_DIR)/modern/worker.debug.js
 
-dist-legacy: clean-js-legacy $(LIBASS_DEPS)
+dist-legacy: clean-js-legacy
 	mkdir -p $(DIST_JS_DIR)/legacy/
 	$(MAKE) MODERN=0 DEBUG=0 $(DIST_JS_DIR)/legacy/worker.min.js
 	$(MAKE) MODERN=0 DEBUG=1 $(DIST_JS_DIR)/legacy/worker.debug.js
@@ -228,10 +222,10 @@ COMPAT_ARGS = \
 		-mbulk-memory \
 		--memory-init-file 0 
 
-$(DIST_JS_DIR)/%/worker.min.js:
+$(DIST_JS_DIR)/%/worker.min.js: $(LIBASS_DEPS)
 	$(MAKE) DEBUG=0 build-worker OUT_JS=$@
 
-$(DIST_JS_DIR)/%/worker.debug.js:
+$(DIST_JS_DIR)/%/worker.debug.js: $(LIBASS_DEPS)
 	$(MAKE) DEBUG=1 build-worker OUT_JS=$@
 
 build-worker: src/JASSUB.cpp src/worker.js src/pre-worker.js | $(LIBASS_DEPS)

@@ -7,7 +7,7 @@ const commonBaseConfig = {
     module: {
         rules: [{
             test: /\.(js)$/,
-            exclude: [/core-js/],
+            exclude: [/core-js/, /worker\.(debug|min)\.js$/],
             use: [{
                 loader: 'string-replace-loader',
                 options: {
@@ -24,19 +24,20 @@ const commonBaseConfig = {
     },
 }
 
-const getWamsFallback = (versionCode) => {
+const getWamsFallback = (versionCode, config) => {
     const source = path.resolve(__dirname, `../../js/${versionCode}/[name]`)
+    const target = config.mode === 'development' ? 'debug' : 'min'
+    const name = 'worker.[target]'.replace('[target]', target)
     return {
         resolve: {
-            fallback: {
-                wasm: source.replace('[name]', 'worker.debug.js')
+            alias: {
+                wasm: source.replace('[name]', `${name}.js`)
             }
         },
         plugins: [
             new CopyWebpackPlugin({
                 patterns: [
-                    { from: source.replace('[name]', 'worker.min.wasm') },
-                    { from: source.replace('[name]', 'worker.debug.wasm') },
+                    { from: source.replace('[name]', `${name}.wasm`) },
                 ]
             })
         ]
