@@ -7,24 +7,29 @@
         "clean": "./run-docker-build.sh -f make clean",
         "docker:build": "docker build -t thaunknown/jassub-build .",
         "docker:run": "docker run -it --rm -v ${PWD}:/code --name thaunknown_jassub-build thaunknown/jassub-build:latest",
-        "lint": "eslint \"src/**/*.js\"",
+        "lint": "eslint ./src/",
         "build": "./run-docker-build.sh && npm run webpack",
         "webpack": "npm run webpack-modern && npm run webpack-legacy",
+        "lint-modern": "eslint ./build/js/modern",
         "build-modern": "./run-docker-build.sh -f make build-68 && npm run webpack-modern",
         "dist-modern": "./run-docker-build.sh -f make dist-modern && npm run webpack-modern",
-        "webpack-modern": "webpack --config build/webpack/modern/webpack.modern.prod.cjs",
+        "webpack-modern": "JAS_TARGER=modern webpack --config build/webpack/modern/webpack.modern.prod.cjs",
+        "lint-legacy": "eslint ./build/js/legacy",
         "build-legacy": "./run-docker-build.sh -f make build-38 && npm run webpack-legacy",
         "dist-legacy": "./run-docker-build.sh -f make dist-legacy && npm run webpack-legacy",
-        "webpack-legacy": "webpack --config build/webpack/legacy/webpack.legacy.prod.cjs"
+        "webpack-legacy": "JAS_TARGER=legacy webpack --config build/webpack/legacy/webpack.legacy.prod.cjs",
+        "postinstall": "sed -i '/sourceMappingURL=index.mjs.map/d' node_modules/event-target-shim/index.mjs"
     },
     "repository": {
         "type": "git",
         "url": "git+https://github.com/ediaz23/dashjs-webos5-legacy.git"
     },
-    "types": "./dist/modern/jassub.min.d.ts",
+    "types": "./index.d.ts",
     "exports": {
         ".": "./dist/modern/jassub.min.js",
+        "./debug": "./dist/modern/jassub.debug.js",
         "./legacy": "./dist/legacy/jassub.min.js",
+        "./legacy/debug": "./dist/legacy/jassub.debug.js",
         "./legacy/*": "./dist/legacy/*",
         "./modern/*": "./dist/modern/*",
         "./default-font": "./dist/default.woff2"
@@ -54,7 +59,9 @@
     "homepage": "https://github.com/ediaz23/dashjs-webos5-legacy",
     "dependencies": {
         "@babel/runtime": "^7.27.6",
-        "rvfc-polyfill": "^1.0.7"
+        "event-target-shim": "^6.0.2",
+        "rvfc-polyfill": "^1.0.7",
+        "webpack-conditional-loader": "^1.0.12"
     },
     "devDependencies": {
         "@babel/core": "^7.26.0",

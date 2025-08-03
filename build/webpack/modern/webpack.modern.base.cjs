@@ -6,30 +6,35 @@ const modernConfig = merge(commonBaseConfig, {
     target: ['browserslist'],
     module: {
         rules: [{
-            test: /\.(js)$/,
-            exclude: [/core-js/],
-            loader: 'babel-loader',
-            options: {
-                sourceType: 'unambiguous',
-                presets: [
-                    [
-                        '@babel/preset-env',
-                        {
-                            useBuiltIns: 'usage',
-                            targets: {
-                                chrome: '68'
-                            },
-                            bugfixes: true,
-                            corejs: '3.39.0',
-                        }
+            test: /\.(js|mjs)$/,
+            exclude: [/core-js/, /worker\.(debug|min)\.js$/],
+            use: [{
+                loader: 'babel-loader',
+                options: {
+                    sourceType: 'unambiguous',
+                    presets: [
+                        [
+                            '@babel/preset-env',
+                            {
+                                useBuiltIns: 'usage',
+                                targets: {
+                                    chrome: '68'
+                                },
+                                bugfixes: true,
+                                corejs: '3.39.0',
+                            }
+                        ],
                     ],
-                ],
-                plugins: [
-                    '@babel/plugin-transform-runtime',
-                    '@babel/plugin-proposal-nullish-coalescing-operator',
-                    '@babel/plugin-proposal-optional-chaining'
-                ],
+                    plugins: [
+                        '@babel/plugin-transform-runtime',
+                        '@babel/plugin-proposal-nullish-coalescing-operator',
+                        '@babel/plugin-proposal-optional-chaining'
+                    ],
+                }
             },
+            {
+                loader: 'webpack-conditional-loader'
+            }]
         }]
     }
 });

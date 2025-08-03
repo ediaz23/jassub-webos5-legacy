@@ -1,4 +1,10 @@
+
 import 'rvfc-polyfill'
+let EventTargetBase = EventTarget
+// #if process.env.JAS_TARGER === 'legacy'
+import { EventTarget as EventTargetShim } from 'event-target-shim'
+EventTargetBase = EventTargetShim
+// #endif
 
 const webYCbCrMap = {
     bt709: 'BT709',
@@ -27,8 +33,9 @@ const colorMatrixConversionMap = {
 /**
  * New JASSUB instance.
  * @class
+ * @extends {EventTarget}
  */
-export default class JASSUB extends EventTarget {
+export default class JASSUB extends EventTargetBase {
     /**
      * @param {Object} options Settings object.
      * @param {HTMLVideoElement} options.video Video to use as target for rendering and event listeners. Optional if canvas is specified instead.

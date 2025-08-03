@@ -2,24 +2,13 @@
 import globals from 'globals'
 
 export default [{
+    files: ['src/**/*.js'],
     languageOptions: {
         globals: {
             ...globals.browser,
-            ...globals.mocha,
-            ...globals.node,
-            dashjs: true,
-            ManagedMediaSource: true,
-            WebKitMediaSource: true,
-            MediaSource: true,
-            WebKitMediaKeys: true,
-            MSMediaKeys: true,
-            MediaKeys: true,
-            google: true,
         },
-
         ecmaVersion: 2022,
         sourceType: 'module',
-
         parserOptions: {
             parser: '@babel/eslint-parser',
             requireConfigFile: false,
@@ -35,7 +24,9 @@ export default [{
                 vars: 'all',
                 args: 'after-used',
                 ignoreRestSiblings: true,
-                caughtErrors: 'none' // Allow unused variables in catch blocks
+                caughtErrors: 'none', // Allow unused variables in catch blocks
+                varsIgnorePattern: '^_',
+                argsIgnorePattern: '^_'
             }
         ],
         'no-use-before-define': 0,
@@ -61,5 +52,30 @@ export default [{
         'space-infix-ops': ['error', {
             int32Hint: true,
         }],
+    },
+}, {
+    files: ['build/js/modern/worker.debug.js'],
+    languageOptions: {
+        ecmaVersion: 2017,
+        sourceType: 'module',
+        globals: {
+            ...globals.worker,
+        },
+        parserOptions: {
+            parser: '@babel/eslint-parser',
+            requireConfigFile: false,
+        },
+    },
+}, {
+    files: ['build/js/legacy/worker.debug.js'],
+    languageOptions: {
+        ecmaVersion: 5,
+        sourceType: 'script',
+        globals: {
+            ...globals.worker,
+        },
+        parserOptions: {
+            ecmaVersion: 5,
+        },
     },
 }];

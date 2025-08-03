@@ -1,5 +1,18 @@
 // @ts-ignore
-import WASM from 'wasm'
+
+// #if process.env.JAS_TARGER === 'modern'
+import _JassubWorkerWasm from 'wasm'
+// #endif
+
+// #if process.env.JAS_TARGER === 'legacy'
+import './empty.js';
+// #endif
+
+let JassubWorkerWasm = {}
+
+// #if process.env.JAS_TARGER === 'modern'
+JassubWorkerWasm = _JassubWorkerWasm
+// #endif
 
 if (!Date.now) {
     Date.now = () => new Date().getTime()
@@ -470,88 +483,79 @@ let hasBitmapBug
 
 self.init = data => {
     hasBitmapBug = data.hasBitmapBug
+    /** @param {EmscriptenModule} Module */
+    const initModuleASM = (Module) => {
+        _malloc = Module._malloc
+        self.width = data.width
+        self.height = data.height
+        blendMode = data.blendMode
+        asyncRender = data.asyncRender
+        // Force fallback if engine does not support 'lossy' mode.
+        // We only use createImageBitmap in the worker and historic WebKit versions supported
+        // the API in the normal but not the worker scope, so we can't check this earlier.
+        if (asyncRender && typeof createImageBitmap === 'undefined') {
+            asyncRender = false
+            console.error('"createImageBitmap" needed for "asyncRender" unsupported!')
+        }
+
+        availableFonts = data.availableFonts
+        debug = data.debug
+        targetFps = data.targetFps || targetFps
+        useLocalFonts = data.useLocalFonts
+        dropAllBlur = data.dropAllBlur
+
+        const fallbackFont = data.fallbackFont.toLowerCase()
+        jassubObj = new Module.JASSUB(self.width, self.height, fallbackFont || null, debug)
+
+        if (fallbackFont) {
+            findAvailableFonts(fallbackFont)
+        }
+
+        let subContent = data.subContent
+        if (!subContent) {
+            subContent = read_(data.subUrl)
+        }
+
+        processAvailableFonts(subContent)
+        if (dropAllBlur) {
+            subContent = dropBlur(subContent)
+        }
+
+        for (const font of data.fonts || []) {
+            asyncWrite(font)
+        }
+
+        jassubObj.createTrackMem(subContent)
+
+        subtitleColorSpace = libassYCbCrMap[jassubObj.trackColorSpace]
+
+        jassubObj.setDropAnimations(data.dropAllAnimations || 0)
+
+        if (data.libassMemoryLimit > 0 || data.libassGlyphLimit > 0) {
+            jassubObj.setMemoryLimits(data.libassGlyphLimit || 0, data.libassMemoryLimit || 0)
+        }
+
+        postMessage({ target: 'ready' })
+        postMessage({ target: 'verifyColorSpace', subtitleColorSpace })
+    }
     try {
         const module = new WebAssembly.Module(Uint8Array.of(0x0, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00))
         if (!(module instanceof WebAssembly.Module) ||
             !(new WebAssembly.Instance(module) instanceof WebAssembly.Instance)) {
             throw new Error('WASM not supported')
         }
+        JassubWorkerWasm({ wasm: read_(data.wasmUrl, true) }).then(initModuleASM)
     } catch (e) {
-        console.warn(e)
+        console.warn(e);
         // load WASM2JS code if WASM is unsupported
-        eval(read_(data.legacyWasmUrl))
+        let localAsm = (function() {
+            var asm;
+            eval(read_(data.legacyWasmUrl));
+            return asm;
+        })();
+        JassubWorkerWasm._malloc = localAsm.malloc
+        initModuleASM(JassubWorkerWasm);
     }
-    // hack, we want custom WASM URLs
-    // @ts-ignore
-    if (WebAssembly.instantiateStreaming) {
-        self._fetch = self.fetch
-        self.fetch = () => {
-            const wasmBuffer = read_(data.wasmUrl, true);
-            return Promise.resolve(new Response(wasmBuffer, {
-                headers: {
-                    'Content-Type': 'application/wasm',
-                    'Content-Length': wasmBuffer.byteLength.toString()
-                }
-            }));
-        };
-    }
-
-    WASM({ wasm: !WebAssembly.instantiateStreaming && read_(data.wasmUrl, true) }).then(
-        /** @param {EmscriptenModule} Module */
-        (Module) => {
-            _malloc = Module._malloc
-            self.width = data.width
-            self.height = data.height
-            blendMode = data.blendMode
-            asyncRender = data.asyncRender
-            // Force fallback if engine does not support 'lossy' mode.
-            // We only use createImageBitmap in the worker and historic WebKit versions supported
-            // the API in the normal but not the worker scope, so we can't check this earlier.
-            if (asyncRender && typeof createImageBitmap === 'undefined') {
-                asyncRender = false
-                console.error('"createImageBitmap" needed for "asyncRender" unsupported!')
-            }
-
-            availableFonts = data.availableFonts
-            debug = data.debug
-            targetFps = data.targetFps || targetFps
-            useLocalFonts = data.useLocalFonts
-            dropAllBlur = data.dropAllBlur
-
-            const fallbackFont = data.fallbackFont.toLowerCase()
-            jassubObj = new Module.JASSUB(self.width, self.height, fallbackFont || null, debug)
-
-            if (fallbackFont) {
-                findAvailableFonts(fallbackFont)
-            }
-
-            let subContent = data.subContent
-            if (!subContent) {
-                subContent = read_(data.subUrl)
-            }
-
-            processAvailableFonts(subContent)
-            if (dropAllBlur) {
-                subContent = dropBlur(subContent)
-            }
-
-            for (const font of data.fonts || []) {
-                asyncWrite(font)
-            }
-
-            jassubObj.createTrackMem(subContent)
-
-            subtitleColorSpace = libassYCbCrMap[jassubObj.trackColorSpace]
-
-            jassubObj.setDropAnimations(data.dropAllAnimations || 0)
-
-            if (data.libassMemoryLimit > 0 || data.libassGlyphLimit > 0) {
-                jassubObj.setMemoryLimits(data.libassGlyphLimit || 0, data.libassMemoryLimit || 0)
-            }
-
-            postMessage({ target: 'ready' })
-            postMessage({ target: 'verifyColorSpace', subtitleColorSpace })
-        })
 }
 
 self.offscreenCanvas = ({ transferable }) => {

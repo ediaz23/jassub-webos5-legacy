@@ -1,28 +1,12 @@
 # JASSUB.js - Makefile
 
 # make - Build Dependencies and the JASSUB.js
-# TODO -s LEGACY_VM_SUPPORT=1
 BASE_DIR:=$(dir $(realpath $(firstword $(MAKEFILE_LIST))))
 DIST_DIR:=$(BASE_DIR)build/libraries
 DIST_JS_DIR:=$(BASE_DIR)build/js
 
-CFLAGS := -O3 -flto -fno-rtti -fno-exceptions -s USE_PTHREADS=0 -s WASM=1
-CXXFLAGS := $(CFLAGS)
-
-ifeq (${MODERN},1)
-	MIN_CHROME_VERSION = 68
-	WORKER_ARGS =
-	CFLAGS += -s MIN_CHROME_VERSION=$(MIN_CHROME_VERSION)
-else
-	MIN_CHROME_VERSION = 38
-	WORKER_ARGS = -s LEGACY_VM_SUPPORT=1
-	CFLAGS += -s MIN_CHROME_VERSION=$(MIN_CHROME_VERSION)
-endif
-
-CXXFLAGS := $(CFLAGS)
-export CFLAGS
-export CXXFLAGS
-
+export CFLAGS := -O3 -flto -fno-rtti -fno-exceptions -s USE_PTHREADS=0
+export CXXFLAGS := $(CFLAGS)
 export PKG_CONFIG_PATH = $(DIST_DIR)/lib/pkgconfig
 export EM_PKG_CONFIG_PATH = $(PKG_CONFIG_PATH)
 
@@ -218,7 +202,7 @@ COMPAT_ARGS = \
 		-s EXPORT_KEEPALIVE=1 \
 		-s EXPORTED_RUNTIME_METHODS="['getTempRet0', 'setTempRet0']" \
 		-s IMPORTED_MEMORY=1 \
-		-s MIN_CHROME_VERSION=$(MIN_CHROME_VERSION) \
+		-s MIN_CHROME_VERSION=$(if $(filter 1,$(MODERN)),68,38) \
 		-mbulk-memory \
 		--memory-init-file 0 
 
@@ -231,7 +215,6 @@ $(DIST_JS_DIR)/%/worker.debug.js: $(LIBASS_DEPS)
 build-worker: src/JASSUB.cpp src/worker.js src/pre-worker.js | $(LIBASS_DEPS)
 	mkdir -p $(dir $@)
 	emcc src/JASSUB.cpp $(LIBASS_DEPS) \
-		$(WORKER_ARGS) \
 		$(PERFORMANCE_ARGS) \
 		$(SIZE_ARGS) \
 		$(COMPAT_ARGS) \
@@ -239,8 +222,11 @@ build-worker: src/JASSUB.cpp src/worker.js src/pre-worker.js | $(LIBASS_DEPS)
 		-s ENVIRONMENT=worker \
 		-s EXIT_RUNTIME=0 \
 		-s ALLOW_MEMORY_GROWTH=1 \
-		-s MODULARIZE=1 \
-		-s EXPORT_ES6=1 \
+		-s MODULARIZE=$(MODERN) \
+		-s EXPORT_ES6=$(MODERN) \
+		-s WASM=$(MODERN) \
+		-s LEGACY_VM_SUPPORT=$(if $(filter 0,$(MODERN)),1,0) \
+		-s EXPORT_NAME=JassubWorkerWasm \
 		-lembind \
 		-o $(OUT_JS)
 
