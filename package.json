@@ -6,7 +6,7 @@
     "scripts": {
         "clean": "./run-docker-build.sh -f make clean",
         "docker:build": "docker build -t thaunknown/jassub-build .",
-        "docker:run": "docker run -it --rm -v ${PWD}:/code --name thaunknown_jassub-build thaunknown/jassub-build:latest",
+        "docker:run": "docker run -it --rm -v ${PWD}:/code --name jassub thaunknown/jassub-build:latest",
         "lint": "eslint ./src/",
         "build": "./run-docker-build.sh && npm run webpack",
         "webpack": "npm run webpack-modern && npm run webpack-legacy",

@@ -2,7 +2,7 @@ usage() {
     echo "$0 [-f] [-c con_name] [-i img_name] [commmand [command_args...]]"
     echo "  -f: Skip building the container and reuse existing (\"fast\")"
     echo "  -c: Name of the container to create/use;"
-    echo "      defaults to thaunknown_jassub-build"
+    echo "      defaults to jassub"
     echo "  -i: Name of the image to buld/use;"
     echo "      defaults to thaunknown/jassub-build"
     echo "If no command is given `make` without arguments will be executed"
@@ -10,7 +10,7 @@ usage() {
 }
 
 OPTIND=1
-CONTAINER="thaunknown_jassub-build"
+CONTAINER="jassub"
 IMAGE="thaunknown/jassub-build"
 FAST=0
 while getopts "fc:s:" opt ; do
