@@ -1,18 +1,42 @@
 // @ts-ignore
 
+let JassubWorkerWasm = {}
 // #if process.env.JAS_TARGER === 'modern'
 import _JassubWorkerWasm from 'wasm'
+JassubWorkerWasm = _JassubWorkerWasm
 // #endif
 
 // #if process.env.JAS_TARGER === 'legacy'
 import './empty.js';
-// #endif
 
-let JassubWorkerWasm = {}
+// polyfills for old or weird engines
 
-// #if process.env.JAS_TARGER === 'modern'
-JassubWorkerWasm = _JassubWorkerWasm
-// #endif
+void String.prototype.startsWith;
+void String.prototype.includes;
+
+void Array.prototype.fill;
+void Array.prototype.copyWithin;
+
+void Uint8Array.prototype.slice;
+
+void Int8Array.prototype.fill;
+void Int16Array.prototype.fill;
+void Int32Array.prototype.fill;
+void Uint8Array.prototype.fill;
+void Uint16Array.prototype.fill;
+void Uint32Array.prototype.fill;
+void Float32Array.prototype.fill;
+void Float64Array.prototype.fill;
+
+void Int8Array.prototype.copyWithin;
+void Int16Array.prototype.copyWithin;
+void Int32Array.prototype.copyWithin;
+void Uint8Array.prototype.copyWithin;
+void Uint16Array.prototype.copyWithin;
+void Uint32Array.prototype.copyWithin;
+void Float32Array.prototype.copyWithin;
+void Float64Array.prototype.copyWithin;
+
 
 if (!Date.now) {
     Date.now = () => new Date().getTime()
@@ -21,6 +45,7 @@ if (!Date.now) {
 if (!('performance' in self)) {
     self.performance = { now: () => Date.now() }
 }
+// #endif
 
 // implement console methods if they're missing
 if (typeof console === 'undefined') {
