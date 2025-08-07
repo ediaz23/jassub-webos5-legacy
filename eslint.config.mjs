@@ -1,5 +1,7 @@
 
+import compat from 'eslint-plugin-compat'
 import globals from 'globals'
+
 
 export default [{
     files: ['src/**/*.js'],
@@ -61,10 +63,15 @@ export default [{
         globals: {
             ...globals.worker,
         },
-        parserOptions: {
-            parser: '@babel/eslint-parser',
-            requireConfigFile: false,
-        },
+    },
+    plugins: {
+        compat,
+    },
+    rules: {
+        'compat/compat': 'error',
+    },
+    settings: {
+        browsers: ['Chrome 68'],
     },
 }, {
     files: ['build/js/legacy/worker.debug.js'],
@@ -74,8 +81,14 @@ export default [{
         globals: {
             ...globals.worker,
         },
-        parserOptions: {
-            ecmaVersion: 5,
-        },
+    },
+    plugins: {
+        compat,
+    },
+    rules: {
+        'compat/compat': 'error',
+    },
+    settings: {
+        browsers: ['Chrome 38'],
     },
 }];
