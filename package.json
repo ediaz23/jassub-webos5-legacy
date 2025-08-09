@@ -1,6 +1,6 @@
 {
     "name": "jassub-webos5",
-    "version": "1.8.601-1",
+    "version": "1.8.601-2",
     "description": "jassub fork targeting webOS 5 and Chromium 68 compatibility, with adjustments for webos 3 and 4",
     "type": "module",
     "scripts": {
@@ -17,8 +17,7 @@
         "lint-legacy": "eslint ./build/js/legacy",
         "build-legacy": "./run-docker-build.sh -f make build-38 && npm run webpack-legacy",
         "dist-legacy": "./run-docker-build.sh -f make dist-legacy && npm run webpack-legacy",
-        "webpack-legacy": "JAS_TARGER=legacy webpack --config build/webpack/legacy/webpack.legacy.prod.cjs",
-        "postinstall": "sed -i '/sourceMappingURL=index.mjs.map/d' node_modules/event-target-shim/index.mjs"
+        "webpack-legacy": "JAS_TARGER=legacy webpack --config build/webpack/legacy/webpack.legacy.prod.cjs"
     },
     "repository": {
         "type": "git",
