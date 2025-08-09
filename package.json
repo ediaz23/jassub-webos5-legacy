@@ -37,7 +37,8 @@
     "files": [
         "dist",
         "index.d.ts",
-        "LICENSE"
+        "LICENSE",
+        "README.md"
     ],
     "keywords": [
         "libass",

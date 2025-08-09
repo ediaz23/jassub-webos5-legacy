@@ -10,15 +10,20 @@ JassubWorkerWasm = _JassubWorkerWasm
 import './empty.js';
 
 // polyfills for old or weird engines
+void Object.prototype.keys;
+
+void Promise;
+void Promise.resolve;
+void Promise.reject;
+void Promise.all;
+void Promise.prototype.then;
+void Promise.prototype.catch;
+void Promise.prototype.finally;
 
 void String.prototype.startsWith;
 void String.prototype.includes;
 
 void Array.prototype.fill;
-void Array.prototype.copyWithin;
-
-void Uint8Array.prototype.slice;
-
 void Int8Array.prototype.fill;
 void Int16Array.prototype.fill;
 void Int32Array.prototype.fill;
@@ -28,6 +33,7 @@ void Uint32Array.prototype.fill;
 void Float32Array.prototype.fill;
 void Float64Array.prototype.fill;
 
+void Array.prototype.copyWithin;
 void Int8Array.prototype.copyWithin;
 void Int16Array.prototype.copyWithin;
 void Int32Array.prototype.copyWithin;
@@ -348,8 +354,12 @@ const paintImages = ({ times, images, buffers }) => {
 
     if (offscreenRender) {
         if (offCanvas.height !== self.height || offCanvas.width !== self.width) {
-            offCanvas.width = self.width
-            offCanvas.height = self.height
+            if (!isNaN(self.width)) {
+                offCanvas.width = self.width
+            }
+            if (!isNaN(self.height)) {
+                offCanvas.height = self.height
+            }
         }
         offCanvasCtx.clearRect(0, 0, self.width, self.height)
         for (const image of images) {
