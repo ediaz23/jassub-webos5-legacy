@@ -583,12 +583,11 @@ self.init = data => {
     } catch (e) {
         console.warn(e);
         // load WASM2JS code if WASM is unsupported
-        let localAsm = (function() {
-            var asm;
+        JassubWorkerWasm._malloc = (function() {
+            var _malloc;
             eval(read_(data.legacyWasmUrl));
-            return asm;
+            return _malloc;
         })();
-        JassubWorkerWasm._malloc = localAsm.malloc
         initModuleASM(JassubWorkerWasm);
     }
 }
