@@ -203,7 +203,6 @@ COMPAT_ARGS = \
 		-s EXPORTED_RUNTIME_METHODS="['getTempRet0', 'setTempRet0']" \
 		-s IMPORTED_MEMORY=1 \
 		-s MIN_CHROME_VERSION=$(if $(filter 1,$(MODERN)),68,38) \
-		-mbulk-memory \
 		--memory-init-file 0 
 
 $(DIST_JS_DIR)/%/worker.min.js: $(LIBASS_DEPS)
@@ -221,6 +220,7 @@ build-worker: src/JASSUB.cpp src/worker.js src/pre-worker.js | $(LIBASS_DEPS)
 		--pre-js src/pre-worker.js \
 		-s ENVIRONMENT=worker \
 		-s EXIT_RUNTIME=0 \
+		-s WASM_BIGINT=0 \
 		-s ALLOW_MEMORY_GROWTH=1 \
 		-s MODULARIZE=$(MODERN) \
 		-s EXPORT_ES6=$(MODERN) \

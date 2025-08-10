@@ -1,6 +1,6 @@
 {
     "name": "jassub-webos5",
-    "version": "1.8.601-2",
+    "version": "1.8.601-3",
     "description": "jassub fork targeting webOS 5 and Chromium 68 compatibility, with adjustments for webos 3 and 4",
     "type": "module",
     "scripts": {
