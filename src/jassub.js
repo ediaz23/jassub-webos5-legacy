@@ -166,6 +166,39 @@ export default class JASSUB extends EventTargetBase {
         })
     }
 
+    /**
+     * Change video and subtitle context
+     * @param {Object} opts
+     * @param {HTMLVideoElement} opts.video
+     * @param {String} opts.subContent
+     * @returns {Promise}
+     */
+    async setNewContext({ video, subContent }) {
+        if (this._destroyed) {
+            throw new Error('Instance destroyed')
+        }
+
+        if (video && video !== this._video) {
+            if (this._canvasParent) {
+                video.insertAdjacentElement('afterend', this._canvasParent)
+            }
+            this._videoWidth = 0
+            this._videoHeight = 0
+            this.setVideo(video)
+        }
+        if (this._onDemandRender) {
+            this.busy = false
+            this._lastDemandTime = null
+        }
+        await this._loaded
+        this.freeTrack()
+        this.setTrack(subContent)
+        if (this._video) {
+            this._playstate = this._video.paused
+            this.setCurrentTime(this._video.paused, this._video.currentTime + this.timeOffset)
+        }
+    }
+
     _createCanvas() {
         this._canvas = document.createElement('canvas')
         this._canvas.style.display = 'block'

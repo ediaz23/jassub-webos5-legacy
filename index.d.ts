@@ -82,9 +82,10 @@ interface JassubOptions {
 type ASS_EventCallback = (error: Error | null, event: ASS_Event[]) => void;
 type ASS_StyleCallback = (error: Error | null, event: ASS_Style[]) => void;
 
-export default class JASSUB {
+export default class JASSUB extends EventTarget {
   constructor (options: JassubOptions);
 
+  setNewContext({ video: HTMLVideoElement, subContent: string }): Promise<void>;
   resize (width?: number, height?: number, top?: number, left?: number): void;
   setVideo (video: HTMLVideoElement): void;
   runBenchmark (): void;
