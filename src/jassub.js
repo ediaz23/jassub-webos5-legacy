@@ -1,5 +1,6 @@
 
 import 'rvfc-polyfill'
+import './rvfc-legacy-polyfill.js'
 let EventTargetBase = EventTarget
 // #if process.env.JAS_TARGER === 'legacy'
 import { EventTarget as EventTargetShim } from 'event-target-shim'
@@ -411,6 +412,9 @@ export default class JASSUB extends EventTargetBase {
     setVideo(video) {
         if (video instanceof HTMLVideoElement) {
             this._removeListeners()
+            if (typeof this._video?.cancelAnimationFramePolyfill === 'function') {
+                this._video.cancelAnimationFramePolyfill()
+            }
             this._video = video
             if (this._onDemandRender) {
                 this._video.requestVideoFrameCallback(this._handleRVFC.bind(this))
@@ -479,6 +483,11 @@ export default class JASSUB extends EventTargetBase {
      * Free currently used subtitle track.
      */
     freeTrack() {
+        this.getStyles((error, styles) => {
+            if (!error) {
+                styles.forEach((_, i) => this.removeStyle(i))
+            }
+        })
         this.sendMessage('freeTrack')
     }
 
@@ -945,6 +954,9 @@ export default class JASSUB extends EventTargetBase {
     destroy(err) {
         if (err) {
             err = this._error(err)
+        }
+        if (typeof this._video?.cancelAnimationFramePolyfill === 'function') {
+            this._video.cancelAnimationFramePolyfill()
         }
         if (this._video && this._canvasParent) {
             this._video.parentNode?.removeChild(this._canvasParent)
