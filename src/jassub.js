@@ -192,7 +192,6 @@ export default class JASSUB extends EventTargetBase {
             this._lastDemandTime = null
         }
         await this._loaded
-        this.freeTrack()
         this.setTrack(subContent)
         if (this._video) {
             this._playstate = this._video.paused
@@ -483,11 +482,6 @@ export default class JASSUB extends EventTargetBase {
      * Free currently used subtitle track.
      */
     freeTrack() {
-        this.getStyles((error, styles) => {
-            if (!error) {
-                styles.forEach((_, i) => this.removeStyle(i))
-            }
-        })
         this.sendMessage('freeTrack')
     }
 

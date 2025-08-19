@@ -11,6 +11,7 @@ import './empty.js';
 
 // polyfills for old or weird engines
 void Object.prototype.keys;
+void Object.assign;
 
 void Promise;
 void Promise.resolve;
@@ -583,11 +584,15 @@ self.init = data => {
     } catch (e) {
         console.warn(e);
         // load WASM2JS code if WASM is unsupported
-        JassubWorkerWasm._malloc = (function() {
-            var _malloc;
+        Object.assign(JassubWorkerWasm, (function() {
+            var _malloc, _free, _fflush;
             eval(read_(data.legacyWasmUrl));
-            return _malloc;
-        })();
+            return {
+                _malloc,
+                _free,
+                _fflush,
+            };
+        })());
         initModuleASM(JassubWorkerWasm);
     }
 }
