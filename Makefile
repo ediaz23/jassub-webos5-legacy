@@ -5,8 +5,8 @@ BASE_DIR:=$(dir $(realpath $(firstword $(MAKEFILE_LIST))))
 DIST_DIR:=$(BASE_DIR)build/libraries
 DIST_JS_DIR:=$(BASE_DIR)build/js
 
-export CFLAGS := -O3 -flto -fno-rtti -fno-exceptions -s USE_PTHREADS=0
-export CXXFLAGS := $(CFLAGS)
+export CFLAGS = -O3 -flto -fno-rtti -fno-exceptions -s USE_PTHREADS=0
+export CXXFLAGS = $(CFLAGS)
 export PKG_CONFIG_PATH = $(DIST_DIR)/lib/pkgconfig
 export EM_PKG_CONFIG_PATH = $(PKG_CONFIG_PATH)
 
