@@ -1,6 +1,6 @@
 
-import 'rvfc-polyfill'
-import './rvfc-legacy-polyfill.js'
+import 'rvfc-legacy-polyfill'
+
 let EventTargetBase = EventTarget
 // #if process.env.JAS_TARGER === 'legacy'
 import { EventTarget as EventTargetShim } from 'event-target-shim'
